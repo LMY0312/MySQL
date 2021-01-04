@@ -1,0 +1,504 @@
+#    安装脚本编辑器，把qiaosuyue.sql拖进去打开，
+#    cmd
+#    cd C:\mysql\mysql-5.7.31-win32\bin
+#    mysql -u root -p
+#    root
+
+#创建schoolmis数据库
+create database schoolmis;
+
+#查看数据库
+show databases;
+
+#使用schoolmis数据库
+use schoolmis;
+
+
+#假如学生表student存在的话，那么删除学生表
+drop table if exists student;
+
+#创建学生表student
+create table student(
+    Sno char(4) comment'学号' not null primary key,
+    Sname char(8) comment'姓名' not null,
+    Sgender char(2) comment '性别',
+    Sbirthday date comment '出生日期',
+    Class char(10) comment '班级'
+) comment '学生表';
+
+
+#查看建表语句
+show create table student;
+
+#假如教师表Teacher存在的话，那么删除老师表
+drop table if exists Teacher;
+
+#创建教师表Teacher
+create table Teacher(
+    Tno Char(3) comment'教工编号' not null primary key,
+    Tname Char(4) comment'教工姓名' not null,
+    Tsex char(2) comment '教工性别' not null,
+    Tbirthday datetime comment '教工出生年月',
+    Prof Char(6) comment '职称',
+    Depart char(10) comment '教工所在部门'
+) comment '老师表';
+
+
+
+#创建课程表course
+#    Cno Char(5) 否   课程号（主码）
+#    Cname   Varchar(10) 否   课程名称
+#    Tno Char(3) 否   教工编号（外码）
+
+create table course(
+    Cno Char(5) comment'课程号' not null primary key,
+    Cname Varchar(10) comment'课程名称' not null,
+    Tno Char(3) comment '教工编号' not null,
+    foreign key (Tno)  references Teacher(Tno)
+);
+
+#创建成绩表score
+# Sno Char(3) 否   学号（外码）
+# Cno Char(5) 否   课程号（外码）
+# Degree  Float   可   成绩
+
+create table score(
+    Sno char(3) not null comment '学号',
+    Cno char(5) not null comment '课程号',
+    Degree float comment '成绩',
+    foreign key (Sno) references student(Sno),
+    foreign key (Cno) references Course(Cno)
+);
+
+
+#修改表
+#alter table 表名 关键词 字段信息；
+
+    #修改表字段信息
+    #modify
+    #修改student表Sgender字段增加默认约束M
+    #alter table 表名 modify 字段名称 数据类型 限定条件;
+    alter table student modify Sgender char(2) comment '性别' default 'M';
+
+    #给表字段重新命名
+    #change
+    #给Sgender重命名为Ssex
+    #alter table 表名 change 旧字段名称 新字段名称 数据类型 限定条件;
+    alter table student change Sgender Ssex char(2) comment '性别' default 'M';
+
+    #增加一个新的字段
+    #add
+    #增加曾用名字段Sname2 char(8)
+    #alter table 表名 add 字段名称 数据类型 限定条件;
+    alter table student add Sname2 char(8) comment '曾用名' ;
+
+    #删除字段
+    #drop
+    #删除曾用名Sname2字段
+    #alter table 表名 drop 字段名称;
+    alter table student drop Sname2;
+
+
+#教师表 增加一个字段  字段office 数据类型 char(4)  字段含义“所在的办公室”
+ alter table Teacher add office char(4) comment '所在的办公室';
+
+#删除office字段
+alter table Teacher drop office;
+
+# Prof Char(6)  修改 Prof Char(10)
+
+alter table Teacher modify Prof char(10);
+
+#重命名 字段Tsex 重命名为Tgender
+alter table Teacher change Tsex Tgender char(2) comment '教工性别' not null;
+
+
+alter table student modify Ssex char(4);
+#插入数据 
+insert into student
+        values ('110','xiaohong','girl','2006-10-21','18ec01');
+
+insert into student
+        values 
+        ('111', 'xiaogang', 'boy', '2005-12-31', '18ec01'),
+        ('112', 'xiaoming', 'boy', '2006-07-18', '18ec01');
+
+insert into student(Sno,Sname,Ssex,Class)
+    values('113','zhangsan','boy','18ec01');
+
+insert into student(Sno,Sname,Ssex,Class)
+    values('114','lisi','boy','');
+
+
+
+
+
+
+
+
+#修改数据
+#update 表名
+#    set 字段1 =新的值,字段2 =新的值
+#    where 字段 = 要选择的记录的值
+
+
+update student
+    set Sbirthday = '2005-01-01'
+    where Sname = 'zhangsan';
+
+
+update student
+    set Sbirthday = '2005-12-05',
+        Class  = '19ec02'
+    where Sno = '114';
+
+
+
+    update student
+    set  Class  = '20ec01'
+    where Class = '19ec02';
+
+
+
+delete from student
+    where Sno = '113';
+
+truncate table score;
+
+
+--------------------------------------
+SELECT name as `姓名`,gender `性别`,score `成绩`  
+ FROM students
+ WHERE class_id = 1;
+
+#题目1：1/2班 及格人员 字段：班级、姓名、成绩。
+SELECT name as `姓名`,class_id `班级`,score `成绩` 
+ FROM students 
+ WHERE class_id = 1 
+ or class_id =2 
+ and score >= 60;
+
+
+#题目2 70分男生与女生70-90
+
+ SELECT name as `姓名`,class_id `班级`,score `成绩` ,gender `性别`
+ FROM students
+ where score >= 70
+ and score <= 90;
+
+
+#题目3 男生、女 替换为男M、女F
+#case (gender) 
+#when 'F' then '女' 
+#when 'M' then '男'
+#end
+SELECT name as `姓名`,
+       case class_id
+       when 1 then '第一班级'
+      when 2 then '第二班级'
+      when 3 then '第三班级'
+       end `班级`,
+       score `成绩` ,
+       case gender
+       when 'F' then '女'
+      when 'M' then '男'
+       end `性别`
+               FROM students;
+
+SELECT max(score) as max_score
+FROM students
+where class_id = 1;
+
+SELECT 
+   1 as class_id,
+    max(score) as `最高分`,
+    min(score) as `最低分`,
+      count(id) as `人数`,
+      sum(score) as `班级总分`,
+      avg(score) as `平均分`
+      FROM students
+      where class_id = 1;
+
+#女生的最高分和最低分
+SELECT 
+   'F' as gender,
+    max(score) as `最高分`,
+ avg(score) as `平均分`
+FROM students
+      where gender = 'F';
+
+#1/2班级女生的最高的最低的考试人数
+SELECT 
+   'F' as gender,
+max(score) as `最高分`,
+avg(score) as `平均分`,
+min(score) as `最低分`,
+count(id) as `人数`
+FROM students
+      where gender = 'F' and  (class_id=1 or class_id =2);
+
+
+#2班的最高值、最小值、平均值、总分
+SELECT 
+max(score) as `最高分`,
+avg(score) as `平均分`,
+min(score) as `最低分`,
+sum(score) as `总合分数`,
+count(id) as `人数`
+FROM students
+      where  class_id=2;
+
+
+#group by ：组的意思
+#按各班级进行分别展示最高分、平均分、最低分、总和分数、人数。
+SELECT
+class_id, 
+max(score) as `最高分`,
+avg(score) as `平均分`,
+min(score) as `最低分`,
+sum(score) as `总合分数`,
+count(id) as `人数`
+FROM students
+group by class_id;
+
+#按各班级女生分别展示----------
+SELECT
+class_id, 
+max(score) as `最高分`,
+avg(score) as `平均分`,
+min(score) as `最低分`,
+sum(score) as `总合分数`,
+count(id) as `人数`
+FROM students
+where gender = 'F'
+group by class_id;
+
+#按各班男、女生分别展示----------
+SELECT
+class_id, 
+gender,
+max(score) as `最高分`,
+avg(score) as `平均分`,
+min(score) as `最低分`,
+sum(score) as `总合分数`,
+count(id) as `人数`
+FROM students
+group by class_id,gender;
+
+#保留小数位 如：保留1位
+SELECT
+class_id, 
+gender,
+max(score) as `最高分`,
+round(avg(score),1) as `平均分`,
+min(score) as `最低分`,
+sum(score) as `总合分数`,
+count(id) as `人数`
+FROM students
+group by class_id,gender;
+
+
+
+
+
+
+#第一题 student表中的女生的最大值、最小值、人数
+SELECT
+max(score) as `最高分`,
+min(score) as `最低分`,
+count(id) as `人数`
+FROM students
+where gender = 'F';
+
+#第二题 student表中按性别分组统计人数
+SELECT
+gender,
+count(id) as `人数`
+FROM students
+group by gender;
+
+
+
+#三个班的总分是多少
+SELECT
+class_id, 
+sum(score) as `总合分数`
+FROM students
+group by class_id;
+
+
+
+#降序排序
+SELECT
+class_id, 
+sum(score) as `总合分数`
+FROM students
+group by class_id
+order by sum(score) desc;
+
+
+#三个班的女生的平均分的降序,保留俩位小数
+SELECT
+class_id,
+round(avg(score),2) as `平均分`
+FROM students
+where gender='F'
+group by class_id
+order by avg(score) desc;
+
+#各班有多少男/女生
+SELECT
+class_id,
+gender,
+count(id) as `人数`
+FROM students
+
+group by class_id,gender;
+
+#按照性别排序（先男生在女生），在按照成绩从高到第
+SELECT name,gender,score FROM students
+order by gender desc,score desc;
+
+#统计人数 舒适版
+
+SELECT 
+    class_id,
+    count(if(gender = 'F',1,NULL)) as `女生人数`,
+     count(if(gender = 'F',1,NULL)) as `男生人数`
+     FROM students
+     group by class_id;
+
+
+
+#各班按平均分展示，从高到低排序
+SELECT
+class_id,
+avg(score) as `平均分`
+FROM students
+group by class_id
+order by avg(score) desc;
+
+
+
+
+#各班女生的人数
+SELECT
+class_id,
+gender,
+count(id) as `人数`
+FROM students
+where gender = 'F'
+group by class_id,gender;
+
+
+#在筛选中继续筛选：having（二次筛选） count(id)=2【筛选id=等于2的】
+SELECT
+class_id,
+gender,
+count(id) as `人数`
+FROM students
+where gender = 'F'
+group by class_id,gender
+having count(id) = 2;
+
+
+#统计女生的平均分，在85分以上的学员进行筛选
+SELECT
+class_id,
+avg(score) as `平均分`
+FROM students
+where gender='F'
+group by class_id
+having avg(score) >=85;
+
+
+#分别统计各班的平均分，筛选出大于85分的班级
+SELECT
+class_id,
+avg(score) as `平均分`
+FROM students
+group by class_id
+having avg(score) >=85;
+
+
+
+#搜索/查询 查询某个条件
+
+select * 
+from students
+where name = '小红';
+
+
+
+select * 
+from students
+where name like '%红';
+
+
+#取前5
+select name,score
+from students
+order by score desc
+limit 5
+
+#找出哪个班级平均分最高
+SELECT
+class_id,
+avg(score) as `平均分`
+FROM students
+group by class_id
+order by avg(score) desc 
+limit 1
+
+
+
+#找出哪个班级平均分最高的小数点
+SELECT
+class_id,avg_score
+from
+(
+      select class_id,round(avg(score),2) as `平均分`
+FROM students
+group by class_id
+order by avg_score desc 
+limit 1;
+
+
+#学生表是哪个班的
+SELECT s.id, s.name, s.class_id, s.gender, s.score , c.name class_name
+from students s
+left join classes c
+on s.class_id =c.id;
+
+#已经进的学生这个班有多少学生 ，学生的姓名
+SELECT c.name class_name , s.id, s.name
+from classes c
+left join students s 
+on s.class_id =c.id;
+
+#筛选出三班
+SELECT c.name class_name , s.id, s.name
+from classes c
+left join students s 
+on s.class_id =c.id
+where c.name = '三班';
+
+#筛选出90分以上的同学（包含90），并且关联出班级名称
+SELECT c.name class_name,  s.name ,s.score
+from classes c
+left join students s
+on s.class_id = c.id
+where s.score >= 90;
+
+#查看女生基本的信息
+#女生姓名、班级名称、成绩
+select s.name `姓名`, c.name c_name,s.score
+from students s
+left join classes c
+on s.class_id = c.id
+where s.gender = 'F' ;
+
+select c.name as c_name,s.name as s_name
+from students s
+right join classes c
+on s.class_id =c.id;
